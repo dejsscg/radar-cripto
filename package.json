@@ -1,0 +1,16 @@
+{
+  "name": "radar-cripto",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/main.jsx --bundle --minify --loader:.jsx=jsx --outfile=deploy/bundle.js --define:process.env.NODE_ENV='\"production\"' && cp deploy-template/index.html deploy-template/vercel.json deploy/ 2>/dev/null || true",
+    "dev": "esbuild src/main.jsx --bundle --loader:.jsx=jsx --outfile=deploy/bundle.js --define:process.env.NODE_ENV='\"development\"' --watch --servedir=deploy"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
