@@ -1415,6 +1415,26 @@ function Carteras() {
                   </span>
                 </div>
               )}
+              {snaps.length >= 3 && (() => {
+                const vals = snaps.map((s) => s.balance);
+                const min = Math.min(...vals);
+                const max = Math.max(...vals);
+                const range = max - min || 1;
+                const h = 60;
+                const w = "100%";
+                const pts = vals.map((v, i) => {
+                  const x = vals.length === 1 ? 0 : (i / (vals.length - 1)) * 100;
+                  const y = h - ((v - min) / range) * (h - 8) - 4;
+                  return `${x},${y}`;
+                }).join(" ");
+                const lineColor = vals[vals.length - 1] >= vals[0] ? C.sonar : C.red;
+                return (
+                  <svg viewBox={`0 0 100 ${h}`} preserveAspectRatio="none" style={{ width: w, height: h, display: "block", marginTop: 8 }}>
+                    <polyline points={pts} fill="none" stroke={lineColor} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+                    <polyline points={`0,${h} ${pts} 100,${h}`} fill={lineColor + "15"} stroke="none" />
+                  </svg>
+                );
+              })()}
               {snaps.length < 2 && (
                 <div style={{ fontSize: 12, color: C.dim, marginTop: 4 }}>
                   Primer snapshot guardado. Vuelve luego y actualiza balances para confirmar acumulación.
