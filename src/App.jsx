@@ -173,6 +173,10 @@ function Tendencias({ onSelectCoin }) {
   const [loading, setLoading] = useState(false);
   const [maxAgeMonths, setMaxAgeMonths] = useState(0); // 0 = todas
   const [hideTop, setHideTop] = useState(false); // ocultar top 20 por market cap
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchTimerRef = React.useRef(null);
 
   // antigüedad aproximada: la fecha más vieja entre ATL y ATH que reporta CoinGecko
   const coinAgeMonths = (coin) => {
@@ -210,6 +214,22 @@ function Tendencias({ onSelectCoin }) {
     load();
   }, [load]);
 
+  // Debounced search
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (searchQuery.length < 2) { setSearchResults(null); return; }
+    searchTimerRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const r = await fetchRetry(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(searchQuery)}`);
+        const j = await r.json();
+        setSearchResults((j.coins || []).slice(0, 6));
+      } catch { setSearchResults([]); }
+      setSearchLoading(false);
+    }, 500);
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
+  }, [searchQuery]);
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -217,6 +237,44 @@ function Tendencias({ onSelectCoin }) {
         <button style={styles.btn} onClick={load} disabled={loading}>
           {loading ? "Cargando…" : "↻ Actualizar"}
         </button>
+      </div>
+
+      {/* Buscador de monedas */}
+      <div style={{ position: "relative", marginBottom: 16 }}>
+        <input
+          style={{ ...styles.input, paddingLeft: 32 }}
+          placeholder="Buscar cualquier moneda…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.dim, fontSize: 14, pointerEvents: "none" }}>🔍</span>
+        {(searchResults || searchLoading) && searchQuery.length >= 2 && (
+          <div style={{
+            position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20,
+            background: C.surface2, border: `1px solid ${C.line}`, borderRadius: 8,
+            marginTop: 4, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,.5)",
+          }}>
+            {searchLoading && (
+              <div style={{ padding: 12, textAlign: "center" }}>
+                <div className="loading-dots"><span/><span/><span/></div>
+              </div>
+            )}
+            {searchResults && searchResults.length === 0 && !searchLoading && (
+              <div style={{ padding: "12px 14px", ...styles.mono, fontSize: 12, color: C.dim }}>Sin resultados</div>
+            )}
+            {searchResults && searchResults.map((c) => (
+              <div key={c.id} className="card-hover"
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", cursor: "pointer", borderBottom: `1px solid ${C.line}33` }}
+                onClick={() => { onSelectCoin(c.id); setSearchQuery(""); setSearchResults(null); }}>
+                <img src={c.thumb} alt="" width={24} height={24} style={{ borderRadius: 12 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{c.name} <span style={{ ...styles.mono, fontSize: 11, color: C.dim }}>{c.symbol}</span></div>
+                </div>
+                {c.market_cap_rank && <span style={{ ...styles.mono, fontSize: 11, color: C.dim }}>#{c.market_cap_rank}</span>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {err && (
         <div style={{ ...styles.card, borderColor: C.red + "99", background: C.red + "0D", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
