@@ -522,6 +522,9 @@ function Alpha() {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null); // {pool, info}
   const [minLiq, setMinLiq] = useState(10000);
+  const [chainFilter, setChainFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [copiedAddr, setCopiedAddr] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -565,9 +568,16 @@ function Alpha() {
     }
   };
 
-  const filtered = (pools || []).filter(
-    (p) => Number(p.attributes.reserve_in_usd || 0) >= minLiq
-  );
+  const filtered = (pools || [])
+    .filter((p) => Number(p.attributes.reserve_in_usd || 0) >= minLiq)
+    .filter((p) => chainFilter === "all" || p.id.split("_")[0] === chainFilter)
+    .sort((a, b) => {
+      const aa = a.attributes, ba = b.attributes;
+      if (sortBy === "liquidity") return (Number(ba.reserve_in_usd) || 0) - (Number(aa.reserve_in_usd) || 0);
+      if (sortBy === "volume") return (Number(ba.volume_usd?.h24) || 0) - (Number(aa.volume_usd?.h24) || 0);
+      if (sortBy === "fdv") return (Number(ba.fdv_usd) || 0) - (Number(aa.fdv_usd) || 0);
+      return new Date(ba.pool_created_at || 0) - new Date(aa.pool_created_at || 0);
+    });
 
   return (
     <div>
@@ -594,6 +604,47 @@ function Alpha() {
           </button>
         ))}
       </div>
+
+      {/* Filtro por red */}
+      {pools && (() => {
+        const chains = [...new Set((pools || []).map((p) => p.id.split("_")[0]))].sort();
+        return chains.length > 1 ? (
+          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 10, ...styles.mono, fontSize: 12 }}>
+            <span style={{ color: C.dim, marginRight: 2 }}>Red:</span>
+            {[{ v: "all", l: "Todas" }, ...chains.map((c) => ({ v: c, l: c }))].map((o) => (
+              <button key={o.v} className="filter-btn"
+                style={{ ...styles.btn, padding: "4px 10px", fontSize: 12,
+                  background: chainFilter === o.v ? C.sonar + "1A" : "transparent",
+                  borderColor: chainFilter === o.v ? C.sonar : C.line,
+                  color: chainFilter === o.v ? C.sonar : C.dim }}
+                onClick={() => setChainFilter(o.v)}>
+                {o.l}
+              </button>
+            ))}
+          </div>
+        ) : null;
+      })()}
+
+      {/* Ordenar */}
+      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 16, ...styles.mono, fontSize: 12 }}>
+        <span style={{ color: C.dim, marginRight: 2 }}>Orden:</span>
+        {[
+          { v: "newest", l: "Más nuevos" },
+          { v: "liquidity", l: "Mayor liquidez" },
+          { v: "volume", l: "Mayor vol 24h" },
+          { v: "fdv", l: "Mayor FDV" },
+        ].map((o) => (
+          <button key={o.v} className="filter-btn"
+            style={{ ...styles.btn, padding: "4px 10px", fontSize: 12,
+              background: sortBy === o.v ? C.sonar + "1A" : "transparent",
+              borderColor: sortBy === o.v ? C.sonar : C.line,
+              color: sortBy === o.v ? C.sonar : C.dim }}
+            onClick={() => setSortBy(o.v)}>
+            {o.l}
+          </button>
+        ))}
+      </div>
+
       {err && (
         <div style={{ ...styles.card, borderColor: C.red + "99", background: C.red + "0D", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
@@ -646,6 +697,24 @@ function Alpha() {
                   <div className="stat-cell-value">{fmtUsd(a.volume_usd?.h24)}</div>
                 </div>
               </div>
+              {(() => {
+                const baseAddr = tokenId ? tokenId.slice(tokenId.indexOf("_") + 1) : null;
+                if (!baseAddr) return null;
+                return (
+                  <button
+                    style={{ ...styles.btn, padding: "3px 8px", fontSize: 10, marginTop: 8,
+                      color: copiedAddr === baseAddr ? C.sonar : C.dim,
+                      borderColor: copiedAddr === baseAddr ? C.sonar + "55" : C.line }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      try { navigator.clipboard.writeText(baseAddr); } catch {}
+                      setCopiedAddr(baseAddr);
+                      setTimeout(() => setCopiedAddr(null), 1500);
+                    }}>
+                    {copiedAddr === baseAddr ? "✓ copiado" : "📋 copiar contrato"}
+                  </button>
+                );
+              })()}
             </div>
           );
         })}
