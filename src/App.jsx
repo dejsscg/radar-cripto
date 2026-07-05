@@ -94,6 +94,39 @@ const styles = {
   }),
 };
 
+// ---------- Inline SVG icons (Lucide-style, 18×18 default) ----------
+const svgIcon = (d, size = 18, extra = {}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+    style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0, ...extra.style }} {...extra}>
+    {typeof d === "string" ? <path d={d} /> : d}
+  </svg>
+);
+const Icon = {
+  trendUp: (s, e) => svgIcon(<><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></>, s, e),
+  sparkles: (s, e) => svgIcon(<><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z" /><path d="M19 13l.75 2.25L22 16l-2.25.75L19 19l-.75-2.25L16 16l2.25-.75z" /></>, s, e),
+  whale: (s, e) => svgIcon(<><path d="M2 12c0-4 3.5-8 10-8 5 0 8.5 2.5 10 5-1 .5-2.5.5-4 0-2 3-5 5-8 5s-5-1-6-2" /><circle cx="16" cy="10" r="1" fill="currentColor" stroke="none" /></>, s, e),
+  telescope: (s, e) => svgIcon(<><path d="M6 21l6-6" /><path d="M2 7l9 5 5-9" /><path d="M11 12l5-9" /><circle cx="12" cy="12" r="2" /></>, s, e),
+  radio: (s, e) => svgIcon(<><path d="M4.9 19.1A14 14 0 0 1 2 12c0-3.5 1.1-6.7 2.9-9.1" /><path d="M9.2 16.8A8 8 0 0 1 6 12c0-2 .7-3.8 1.8-5.2" /><circle cx="12" cy="12" r="2" /><path d="M14.8 16.8A8 8 0 0 0 18 12c0-2-.7-3.8-1.8-5.2" /><path d="M19.1 19.1A14 14 0 0 0 22 12c0-3.5-1.1-6.7-2.9-9.1" /></>, s, e),
+  search: (s, e) => svgIcon(<><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></>, s, e),
+  clipboard: (s, e) => svgIcon(<><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></>, s, e),
+  download: (s, e) => svgIcon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></>, s, e),
+  upload: (s, e) => svgIcon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></>, s, e),
+  flame: (s, e) => svgIcon(<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2.5-1-3.5L8 6c1.5-1 3.5-2 5-2 4 0 7 3.5 7 8s-3.5 9-7 9c-2.5 0-4.5-1.5-5.5-3.5" />, s, e),
+  alertTriangle: (s, e) => svgIcon(<><path d="M10.3 3.2L1.7 18a2 2 0 0 0 1.7 3h17.1a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></>, s, e),
+  globe: (s, e) => svgIcon(<><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></>, s, e),
+  send: (s, e) => svgIcon(<><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></>, s, e),
+  messageCircle: (s, e) => svgIcon(<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />, s, e),
+  fileText: (s, e) => svgIcon(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></>, s, e),
+  code: (s, e) => svgIcon(<><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></>, s, e),
+  scroll: (s, e) => svgIcon(<><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 0 0-2-2H2" /><path d="M19 3H6a2 2 0 0 0-2 2v14" /></>, s, e),
+  building: (s, e) => svgIcon(<><rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" /><path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M8 10h.01" /><path d="M16 10h.01" /><path d="M8 14h.01" /><path d="M16 14h.01" /></>, s, e),
+  inbox: (s, e) => svgIcon(<><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></>, s, e),
+  coin: (s, e) => svgIcon(<><circle cx="12" cy="12" r="8" /><path d="M14.5 9.5a3 3 0 0 0-5 0" /><path d="M9.5 14.5a3 3 0 0 0 5 0" /><line x1="12" y1="4" x2="12" y2="6" /><line x1="12" y1="18" x2="12" y2="20" /></>, s, e),
+  externalLink: (s, e) => svgIcon(<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></>, s, e),
+  x: (s, e) => svgIcon(<path d="M4 4l7.07 9.34L4.5 20h1.8l5.2-5.26L15.8 20H20l-7.45-9.84L19 4h-1.8L12.5 9.1 8.62 4z" fill="currentColor" stroke="none" />, s, e),
+};
+
 // ---------- Ethereum RPC helpers ----------
 const ETH_RPC = "https://ethereum-rpc.publicnode.com";
 async function ethRpc(method, params) {
@@ -247,7 +280,7 @@ function Tendencias({ onSelectCoin }) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.dim, fontSize: 14, pointerEvents: "none" }}>🔍</span>
+        <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.dim, pointerEvents: "none" }}>{Icon.search(14)}</span>
         {(searchResults || searchLoading) && searchQuery.length >= 2 && (
           <div style={{
             position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20,
@@ -278,7 +311,7 @@ function Tendencias({ onSelectCoin }) {
       </div>
       {err && (
         <div style={{ ...styles.card, borderColor: C.red + "99", background: C.red + "0D", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+          <span style={{ color: C.red, flexShrink: 0 }}>{Icon.alertTriangle(16)}</span>
           <span style={{ color: C.red, fontSize: 13, lineHeight: 1.5 }}>{err}</span>
         </div>
       )}
@@ -316,7 +349,7 @@ function Tendencias({ onSelectCoin }) {
           <p style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 14 }}>Consultando CoinGecko…</p>
         </div>
       )}
-      <div className="section-label" style={{ marginTop: 4 }}>🔥 Más buscadas ahora (CoinGecko)</div>
+      <div className="section-label" style={{ marginTop: 4 }}>{Icon.flame(14)} Más buscadas ahora (CoinGecko)</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 10, marginBottom: 24 }}>
         {trending?.filter(({ item }) => !hideTop || !item.market_cap_rank || item.market_cap_rank > 20).map(({ item }) => {
           const chg = item.data?.price_change_percentage_24h?.usd;
@@ -350,7 +383,7 @@ function Tendencias({ onSelectCoin }) {
         })}
       </div>
 
-      <div className="section-label">📈 Mayores subidas 24h (top 100 por market cap)</div>
+      <div className="section-label">{Icon.trendUp(14)} Mayores subidas 24h (top 100 por market cap)</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 10 }}>
         {gainers
           ?.filter((c) => !hideTop || !c.market_cap_rank || c.market_cap_rank > 20)
@@ -408,13 +441,13 @@ function CoinDetail({ coinId, onClose }) {
     coin?.description?.es?.trim() || coin?.description?.en?.trim() || "";
   const links = coin?.links || {};
   const linkList = [
-    { label: "🌐 Sitio web", url: links.homepage?.[0] },
-    { label: "𝕏 Twitter", url: links.twitter_screen_name ? `https://x.com/${links.twitter_screen_name}` : null },
-    { label: "🔍 Menciones en X (live)", url: coin?.symbol ? `https://x.com/search?q=%24${coin.symbol.toUpperCase()}&f=live` : null },
-    { label: "✈️ Telegram", url: links.telegram_channel_identifier ? `https://t.me/${links.telegram_channel_identifier}` : null },
-    { label: "💬 Reddit", url: links.subreddit_url },
-    { label: "📄 Whitepaper", url: links.whitepaper },
-    { label: "⌨️ GitHub", url: links.repos_url?.github?.[0] },
+    { key: "web", label: <>{Icon.globe(14)} Sitio web</>, url: links.homepage?.[0] },
+    { key: "twitter", label: <>{Icon.x(14)} Twitter</>, url: links.twitter_screen_name ? `https://x.com/${links.twitter_screen_name}` : null },
+    { key: "mentions", label: <>{Icon.search(14)} Menciones en X (live)</>, url: coin?.symbol ? `https://x.com/search?q=%24${coin.symbol.toUpperCase()}&f=live` : null },
+    { key: "telegram", label: <>{Icon.send(14)} Telegram</>, url: links.telegram_channel_identifier ? `https://t.me/${links.telegram_channel_identifier}` : null },
+    { key: "reddit", label: <>{Icon.messageCircle(14)} Reddit</>, url: links.subreddit_url },
+    { key: "whitepaper", label: <>{Icon.fileText(14)} Whitepaper</>, url: links.whitepaper },
+    { key: "github", label: <>{Icon.code(14)} GitHub</>, url: links.repos_url?.github?.[0] },
   ].filter((l) => l.url);
 
   const chg24 = coin?.market_data?.price_change_percentage_24h || 0;
@@ -475,7 +508,7 @@ function CoinDetail({ coinId, onClose }) {
         <div style={{ padding: "0 20px" }}>
           {err && (
             <div style={{ marginTop: 16, padding: "10px 12px", borderRadius: 8, background: C.red + "0D", border: `1px solid ${C.red}44`, color: C.red, fontSize: 13 }}>
-              ⚠️ {err}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.alertTriangle(14)} {err}</span>
             </div>
           )}
           {coin && (
@@ -520,7 +553,7 @@ function CoinDetail({ coinId, onClose }) {
               {/* Contratos */}
               {coin.platforms && Object.entries(coin.platforms).filter(([, a]) => a).length > 0 && (
                 <div style={{ marginBottom: 14 }}>
-                  <div className="section-label">📜 Contratos oficiales</div>
+                  <div className="section-label">{Icon.scroll(14)} Contratos oficiales</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {Object.entries(coin.platforms).filter(([, a]) => a).map(([net, addr]) => (
                       <div key={net} style={{
@@ -558,8 +591,8 @@ function CoinDetail({ coinId, onClose }) {
               {/* Links */}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {linkList.map((l) => (
-                  <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
-                    style={{ ...styles.btn, textDecoration: "none", fontSize: 12, background: C.surface }}>
+                  <a key={l.key} href={l.url} target="_blank" rel="noreferrer"
+                    style={{ ...styles.btn, textDecoration: "none", fontSize: 12, background: C.surface, display: "inline-flex", alignItems: "center", gap: 6 }}>
                     {l.label}
                   </a>
                 ))}
@@ -646,7 +679,7 @@ function Alpha() {
         </button>
       </div>
       <p style={{ color: C.dim, fontSize: 13, marginTop: 0, lineHeight: 1.6 }}>
-        Pools creados en las últimas horas en todas las redes (GeckoTerminal). ⚠️ Zona de altísimo riesgo:
+        Pools creados en las últimas horas en todas las redes (GeckoTerminal). <span style={{ color: C.gold }}>{Icon.alertTriangle(13)}</span> Zona de altísimo riesgo:
         la mayoría de tokens nuevos son scams o mueren en días. El filtro de liquidez descarta lo más basura.
       </p>
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 16, ...styles.mono, fontSize: 12 }}>
@@ -705,7 +738,7 @@ function Alpha() {
 
       {err && (
         <div style={{ ...styles.card, borderColor: C.red + "99", background: C.red + "0D", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+          <span style={{ color: C.red, flexShrink: 0 }}>{Icon.alertTriangle(16)}</span>
           <span style={{ color: C.red, fontSize: 13, lineHeight: 1.5 }}>{err}</span>
         </div>
       )}
@@ -769,7 +802,9 @@ function Alpha() {
                       setCopiedAddr(baseAddr);
                       setTimeout(() => setCopiedAddr(null), 1500);
                     }}>
-                    {copiedAddr === baseAddr ? "✓ copiado" : "📋 copiar contrato"}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      {copiedAddr === baseAddr ? <>✓ copiado</> : <>{Icon.clipboard(12)} copiar contrato</>}
+                    </span>
                   </button>
                 );
               })()}
@@ -778,7 +813,7 @@ function Alpha() {
         })}
         {pools && filtered.length === 0 && (
           <div style={{ ...styles.card, textAlign: "center", padding: "36px 16px", gridColumn: "1/-1" }}>
-            <div style={{ fontSize: 28, marginBottom: 10 }}>🔍</div>
+            <div style={{ color: C.dim, marginBottom: 10 }}>{Icon.search(28)}</div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>Sin pools con esa liquidez</div>
             <div style={{ fontSize: 12, color: C.dim }}>Baja el filtro o vuelve a escanear.</div>
           </div>
@@ -807,16 +842,16 @@ function Alpha() {
                 </p>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {(detail.info.websites || []).map((w) => (
-                    <a key={w} href={w} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12 }}>🌐 Web</a>
+                    <a key={w} href={w} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.globe(14)} Web</a>
                   ))}
                   {detail.info.twitter_handle && (
                     <a href={`https://x.com/${detail.info.twitter_handle}`} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12 }}>𝕏 @{detail.info.twitter_handle}</a>
                   )}
                   {detail.info.telegram_handle && (
-                    <a href={`https://t.me/${detail.info.telegram_handle}`} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12 }}>✈️ Telegram</a>
+                    <a href={`https://t.me/${detail.info.telegram_handle}`} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.send(14)} Telegram</a>
                   )}
                   {detail.info.discord_url && (
-                    <a href={detail.info.discord_url} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12 }}>💬 Discord</a>
+                    <a href={detail.info.discord_url} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.messageCircle(14)} Discord</a>
                   )}
                 </div>
               </>
@@ -837,7 +872,7 @@ function Alpha() {
                 href={`https://x.com/search?q=%24${encodeURIComponent((detail.pool.attributes.name || "").split("/")[0].trim())}&f=live`}
                 target="_blank" rel="noreferrer"
                 style={{ ...styles.btn, textDecoration: "none" }}>
-                🔍 Buscar en X (live)
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.search(14)} Buscar en X (live)</span>
               </a>
             </div>
           </div>
@@ -1323,7 +1358,7 @@ function Carteras() {
             { id: "bsc", label: "◆ BNB (BSC)" },
             { id: "btc", label: "₿ BTC" },
             { id: "sol", label: "◎ SOL" },
-            { id: "token", label: "🪙 Token" },
+            { id: "token", label: <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.coin(14)} Token</span> },
           ].map((m) => (
             <button key={m.id}
               style={{ ...styles.btn,
@@ -1388,7 +1423,7 @@ function Carteras() {
             className={busy ? "" : "btn-scan"}
             style={{ ...styles.btn, borderColor: C.gold + "88", color: C.gold, fontWeight: 600, background: C.gold + "0F" }}
             onClick={runScan} disabled={busy}>
-            {busy ? "Escaneando…" : "📡 Escanear blockchain"}
+            {busy ? "Escaneando…" : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.radio(14)} Escanear blockchain</span>}
           </button>
         </div>
         {progress && (
@@ -1399,7 +1434,7 @@ function Carteras() {
         )}
         {err && (
           <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginTop: 10, padding: "10px 12px", borderRadius: 8, background: C.red + "0D", border: `1px solid ${C.red}55` }}>
-            <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
+            <span style={{ color: C.red, flexShrink: 0 }}>{Icon.alertTriangle(14)}</span>
             <span style={{ color: C.red, fontSize: 13, lineHeight: 1.5 }}>{err}</span>
           </div>
         )}
@@ -1415,7 +1450,7 @@ function Carteras() {
           </div>
           {results.ranking.length === 0 && (
             <div style={{ ...styles.card, textAlign: "center", padding: "36px 16px" }}>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>📭</div>
+              <div style={{ color: C.dim, marginBottom: 10 }}>{Icon.inbox(28)}</div>
               <div style={{ fontWeight: 600, marginBottom: 6 }}>Sin resultados</div>
               <div style={{ fontSize: 12, color: C.dim }}>Nada superó el mínimo. Baja el monto y vuelve a escanear.</div>
             </div>
@@ -1435,7 +1470,7 @@ function Carteras() {
                           color: i === 0 ? C.gold : i < 3 ? C.sonar : C.dim,
                         }}>#{i + 1}</span>
                         <span style={styles.tag(CHAIN_META[results.chain].color)}>{results.chain.toUpperCase()}</span>
-                        {known && <span style={styles.tag(C.gold)}>🏦 {known}</span>}
+                        {known && <span style={{ ...styles.tag(C.gold), display: "inline-flex", alignItems: "center", gap: 4 }}>{Icon.building(11)} {known}</span>}
                         {isContract === true && <span style={styles.tag(C.blue)}>contrato</span>}
                         {isContract === false && <span style={styles.tag(C.sonar)}>cartera (EOA)</span>}
                       </div>
@@ -1458,7 +1493,7 @@ function Carteras() {
                       style={{ ...styles.btn, padding: "4px 12px", fontSize: 12,
                         color: tracked ? C.dim : C.gold, borderColor: tracked ? C.line : C.gold + "66" }}
                       onClick={() => !tracked && trackWallet(row)} disabled={tracked || busy}>
-                      {tracked ? "✓ Rastreada" : "🔭 Rastrear"}
+                      {tracked ? "✓ Rastreada" : <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>{Icon.telescope(13)} Rastrear</span>}
                     </button>
                     <a href={CHAIN_META[results.chain].explorer(row.address)} target="_blank" rel="noreferrer"
                       style={{ ...styles.btn, padding: "4px 12px", fontSize: 12, textDecoration: "none" }}>
@@ -1474,7 +1509,7 @@ function Carteras() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <div className="section-label" style={{ margin: 0 }}>🐋 Carteras rastreadas ({data.wallets.length})</div>
+          <div className="section-label" style={{ margin: 0 }}>{Icon.whale(14)} Carteras rastreadas ({data.wallets.length})</div>
           {agoText && <span style={{ ...styles.mono, fontSize: 11, color: C.dim }}>Última actualización: {agoText}</span>}
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
@@ -1502,7 +1537,7 @@ function Carteras() {
                 a.href = url; a.download = "radar-watchlist.json"; a.click();
                 URL.revokeObjectURL(url);
               }}>
-              ⬇ Exportar
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>{Icon.download(13)} Exportar</span>
             </button>
           )}
           <button style={{ ...styles.btn, padding: "4px 10px", fontSize: 11 }}
@@ -1532,7 +1567,7 @@ function Carteras() {
               };
               input.click();
             }}>
-            ⬆ Importar
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>{Icon.upload(13)} Importar</span>
           </button>
         </div>
       </div>
@@ -1615,7 +1650,7 @@ function Carteras() {
         })}
         {data.wallets.length === 0 && (
           <div style={{ ...styles.card, textAlign: "center", padding: "36px 16px" }}>
-            <div style={{ fontSize: 28, marginBottom: 10 }}>🔭</div>
+            <div style={{ color: C.dim, marginBottom: 10 }}>{Icon.telescope(28)}</div>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>Sin carteras rastreadas</div>
             <div style={{ fontSize: 12, color: C.dim }}>Escanea la blockchain arriba y pulsa Rastrear en cualquier dirección.</div>
           </div>
@@ -1641,9 +1676,9 @@ export default function App() {
   const clock = useClock();
 
   const tabs = [
-    { id: "tendencias", label: "📈 Tendencias" },
-    { id: "alpha", label: "🆕 Alpha" },
-    { id: "carteras", label: "🐋 Carteras" },
+    { id: "tendencias", icon: Icon.trendUp(16), label: "Tendencias" },
+    { id: "alpha", icon: Icon.sparkles(16), label: "Alpha" },
+    { id: "carteras", icon: Icon.whale(16), label: "Carteras" },
   ];
 
   return (
@@ -1736,7 +1771,7 @@ export default function App() {
                 fontWeight: tab === t.id ? 600 : 400,
               }}
               onClick={() => setTab(t.id)}>
-              {t.label}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{t.icon} {t.label}</span>
             </button>
           ))}
         </nav>
