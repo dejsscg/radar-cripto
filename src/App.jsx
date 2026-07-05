@@ -92,6 +92,25 @@ const styles = {
     color,
     fontFamily: "'IBM Plex Mono', monospace",
   }),
+  modalOverlay: {
+    position: "fixed", inset: 0,
+    background: "rgba(4,10,16,.85)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    zIndex: 50,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    padding: 16,
+    boxSizing: "border-box",
+  },
+  modalBox: {
+    width: "100%", maxWidth: 560,
+    maxHeight: "85vh",
+    overflowY: "auto",
+    background: C.surface2,
+    border: `1px solid ${C.line}`,
+    borderRadius: 16,
+    boxShadow: "0 2px 16px rgba(0,0,0,.35)",
+  },
 };
 
 // ---------- Inline SVG icons (Lucide-style, 18×18 default) ----------
@@ -442,11 +461,12 @@ function CoinDetail({ coinId, onClose }) {
   const links = coin?.links || {};
   const linkList = [
     { key: "web", label: <>{Icon.globe(14)} Sitio web</>, url: links.homepage?.[0] },
+    { key: "chart", label: <>{Icon.trendUp(14)} Ver gráfico</>, url: `https://www.coingecko.com/es/monedas/${coinId}` },
     { key: "twitter", label: <>{Icon.x(14)} Twitter</>, url: links.twitter_screen_name ? `https://x.com/${links.twitter_screen_name}` : null },
     { key: "mentions", label: <>{Icon.search(14)} Menciones en X (live)</>, url: coin?.symbol ? `https://x.com/search?q=%24${coin.symbol.toUpperCase()}&f=live` : null },
     { key: "telegram", label: <>{Icon.send(14)} Telegram</>, url: links.telegram_channel_identifier ? `https://t.me/${links.telegram_channel_identifier}` : null },
-    { key: "reddit", label: <>{Icon.messageCircle(14)} Reddit</>, url: links.subreddit_url },
     { key: "whitepaper", label: <>{Icon.fileText(14)} Whitepaper</>, url: links.whitepaper },
+    { key: "reddit", label: <>{Icon.messageCircle(14)} Reddit</>, url: links.subreddit_url },
     { key: "github", label: <>{Icon.code(14)} GitHub</>, url: links.repos_url?.github?.[0] },
   ].filter((l) => l.url);
 
@@ -454,25 +474,14 @@ function CoinDetail({ coinId, onClose }) {
 
   return (
     <div
-      style={{
-        position: "fixed", inset: 0,
-        background: "rgba(4,10,16,.85)",
-        backdropFilter: "blur(10px)",
-        zIndex: 50,
-        display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 0 0 0",
-      }}
+      style={styles.modalOverlay}
       onClick={onClose}
     >
       <div
         className="modal-body"
         style={{
-          ...styles.card,
-          width: "100%", maxWidth: 600,
-          maxHeight: "90vh", overflowY: "auto",
-          background: C.surface2,
-          borderRadius: "16px 16px 0 0",
-          borderBottom: "none",
-          padding: "0 0 40px",
+          ...styles.modalBox,
+          padding: "0 0 24px",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -491,7 +500,7 @@ function CoinDetail({ coinId, onClose }) {
               <>
                 <img src={coin.image?.small} alt="" width={36} height={36} style={{ borderRadius: 18 }} />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.3px" }}>{coin.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.3px" }}>{coin.name}</div>
                   <div style={{ ...styles.mono, fontSize: 11, color: C.dim }}>{coin.symbol?.toUpperCase()} · Rank #{coin.market_cap_rank ?? "—"}</div>
                 </div>
               </>
@@ -505,7 +514,7 @@ function CoinDetail({ coinId, onClose }) {
           <button style={{ ...styles.btn, padding: "6px 12px", background: "transparent", borderColor: C.line }} onClick={onClose}>✕</button>
         </div>
 
-        <div style={{ padding: "0 20px" }}>
+        <div style={{ padding: "16px 20px 0" }}>
           {err && (
             <div style={{ marginTop: 16, padding: "10px 12px", borderRadius: 8, background: C.red + "0D", border: `1px solid ${C.red}44`, color: C.red, fontSize: 13 }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.alertTriangle(14)} {err}</span>
@@ -583,7 +592,7 @@ function CoinDetail({ coinId, onClose }) {
 
               {/* Descripción */}
               {desc && (
-                <p style={{ fontSize: 13, lineHeight: 1.7, color: C.dim, marginBottom: 16 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.7, color: C.dim, maxWidth: 480, margin: "0 auto 16px" }}>
                   {desc.replace(/<[^>]+>/g, "").slice(0, 1000) + (desc.length > 1000 ? "…" : "")}
                 </p>
               )}
@@ -820,64 +829,119 @@ function Alpha() {
         )}
       </div>
 
-      {detail && (
-        <div style={{ position: "fixed", inset: 0, background: "#000000AA", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
-          onClick={() => setDetail(null)}>
-          <div style={{ ...styles.card, maxWidth: 520, width: "100%", maxHeight: "85vh", overflowY: "auto", background: C.surface2 }}
-            onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <h3 style={{ margin: 0 }}>{detail.pool.attributes.name}</h3>
-              <button style={{ ...styles.btn, padding: "4px 10px" }} onClick={() => setDetail(null)}>✕</button>
-            </div>
-            {detail.loading && (
-              <div style={{ padding: "20px 0", textAlign: "center" }}>
-                <div className="loading-dots"><span/><span/><span/></div>
-                <p style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 12 }}>Buscando info del proyecto…</p>
+      {detail && (() => {
+        const a = detail.pool.attributes;
+        const tokenId = detail.pool.relationships?.base_token?.data?.id;
+        const baseAddr = tokenId ? tokenId.slice(tokenId.indexOf("_") + 1) : null;
+        return (
+          <div style={styles.modalOverlay} onClick={() => setDetail(null)}>
+            <div
+              className="modal-body"
+              style={{ ...styles.modalBox, padding: "0 0 24px" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{
+                position: "sticky", top: 0,
+                background: C.surface2,
+                borderBottom: `1px solid ${C.line}`,
+                padding: "16px 20px",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                borderRadius: "16px 16px 0 0",
+                zIndex: 1,
+              }}>
+                <h3 style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: "-0.3px" }}>{a.name}</h3>
+                <button style={{ ...styles.btn, padding: "6px 12px", background: "transparent", borderColor: C.line }} onClick={() => setDetail(null)}>✕</button>
               </div>
-            )}
-            {!detail.loading && detail.info && (
-              <>
-                <p style={{ fontSize: 13, lineHeight: 1.6 }}>
-                  {detail.info.description || "El proyecto aún no publicó descripción en GeckoTerminal (señal de precaución)."}
-                </p>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {(detail.info.websites || []).map((w) => (
-                    <a key={w} href={w} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.globe(14)} Web</a>
+
+              <div style={{ padding: "16px 20px 0" }}>
+                {/* Grid de datos clave */}
+                <div className="stat-grid-4">
+                  <div>
+                    <div className="stat-cell-label">Precio</div>
+                    <div className="stat-cell-value accent">{fmtUsd(a.base_token_price_usd)}</div>
+                  </div>
+                  <div>
+                    <div className="stat-cell-label">Liquidez</div>
+                    <div className="stat-cell-value">{fmtUsd(a.reserve_in_usd)}</div>
+                  </div>
+                  <div>
+                    <div className="stat-cell-label">Vol 24h</div>
+                    <div className="stat-cell-value">{fmtUsd(a.volume_usd?.h24)}</div>
+                  </div>
+                  <div>
+                    <div className="stat-cell-label">FDV</div>
+                    <div className="stat-cell-value">{fmtUsd(a.fdv_usd)}</div>
+                  </div>
+                  <div>
+                    <div className="stat-cell-label">Red</div>
+                    <div className="stat-cell-value">{detail.network}</div>
+                  </div>
+                  <div>
+                    <div className="stat-cell-label">Creado hace</div>
+                    <div className="stat-cell-value">{a.pool_created_at ? timeAgo(a.pool_created_at) : "—"}</div>
+                  </div>
+                </div>
+
+                {detail.loading && (
+                  <div style={{ padding: "20px 0", textAlign: "center" }}>
+                    <div className="loading-dots"><span/><span/><span/></div>
+                    <p style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 12 }}>Buscando info del proyecto…</p>
+                  </div>
+                )}
+                {!detail.loading && detail.info && (
+                  <p style={{ fontSize: 14, lineHeight: 1.7, color: C.dim, maxWidth: 480, margin: "16px auto" }}>
+                    {detail.info.description || "El proyecto aún no publicó descripción en GeckoTerminal (señal de precaución)."}
+                  </p>
+                )}
+                {!detail.loading && !detail.info && (
+                  <p style={{ color: C.gold, fontSize: 14, lineHeight: 1.7, marginTop: 16 }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.alertTriangle(14)} Sin información del proyecto registrada. En tokens nuevos, esto suele ser mala señal — verifica el contrato antes de tocar nada.</span>
+                  </p>
+                )}
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                  <a
+                    href={`https://www.geckoterminal.com/${detail.network}/pools/${a.address}`}
+                    target="_blank" rel="noreferrer"
+                    style={{ ...styles.btn, textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    {Icon.trendUp(14)} Gráfico en GeckoTerminal
+                  </a>
+                  <a
+                    href={`https://x.com/search?q=%24${encodeURIComponent((a.name || "").split("/")[0].trim())}&f=live`}
+                    target="_blank" rel="noreferrer"
+                    style={{ ...styles.btn, textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    {Icon.search(14)} Buscar en X (live)
+                  </a>
+                  {!detail.loading && (detail.info?.websites || []).map((w) => (
+                    <a key={w} href={w} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.globe(14)} Web</a>
                   ))}
-                  {detail.info.twitter_handle && (
-                    <a href={`https://x.com/${detail.info.twitter_handle}`} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12 }}>𝕏 @{detail.info.twitter_handle}</a>
+                  {!detail.loading && detail.info?.telegram_handle && (
+                    <a href={`https://t.me/${detail.info.telegram_handle}`} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.send(14)} Telegram</a>
                   )}
-                  {detail.info.telegram_handle && (
-                    <a href={`https://t.me/${detail.info.telegram_handle}`} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.send(14)} Telegram</a>
+                  {!detail.loading && detail.info?.discord_url && (
+                    <a href={detail.info.discord_url} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.messageCircle(14)} Discord</a>
                   )}
-                  {detail.info.discord_url && (
-                    <a href={detail.info.discord_url} target="_blank" rel="noreferrer" style={{ ...styles.btn, textDecoration: "none", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.messageCircle(14)} Discord</a>
+                  {baseAddr && (
+                    <button
+                      style={{ ...styles.btn, fontSize: 13,
+                        color: copiedAddr === baseAddr ? C.sonar : C.dim,
+                        borderColor: copiedAddr === baseAddr ? C.sonar + "55" : C.line }}
+                      onClick={() => {
+                        try { navigator.clipboard.writeText(baseAddr); } catch {}
+                        setCopiedAddr(baseAddr);
+                        setTimeout(() => setCopiedAddr(null), 1500);
+                      }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        {copiedAddr === baseAddr ? <>✓ copiado</> : <>{Icon.clipboard(14)} copiar contrato</>}
+                      </span>
+                    </button>
                   )}
                 </div>
-              </>
-            )}
-            {!detail.loading && !detail.info && (
-              <p style={{ color: C.gold, fontSize: 13 }}>
-                Sin información del proyecto registrada. En tokens nuevos, esto suele ser mala señal — verifica el contrato antes de tocar nada.
-              </p>
-            )}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-              <a
-                href={`https://www.geckoterminal.com/${detail.network}/pools/${detail.pool.attributes.address}`}
-                target="_blank" rel="noreferrer"
-                style={{ ...styles.btn, textDecoration: "none" }}>
-                Gráfico en GeckoTerminal ↗
-              </a>
-              <a
-                href={`https://x.com/search?q=%24${encodeURIComponent((detail.pool.attributes.name || "").split("/")[0].trim())}&f=live`}
-                target="_blank" rel="noreferrer"
-                style={{ ...styles.btn, textDecoration: "none" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{Icon.search(14)} Buscar en X (live)</span>
-              </a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
@@ -1739,6 +1803,8 @@ export default function App() {
         .stat-cell-value.accent { color:${C.sonar}; }
         .stat-cell-value.up { color:${C.sonar}; }
         .stat-cell-value.down { color:${C.red}; }
+        .stat-grid-4 .stat-cell-label { font-size:12px; }
+        .stat-grid-4 .stat-cell-value { font-size:14px; }
         .modal-body { animation:modal-up .25s cubic-bezier(.22,1,.36,1) both; }
         .tab-content { animation:tab-fade .2s ease-out both; }
         .badge-new { display:inline-flex; align-items:center; font-size:9px; letter-spacing:1px; font-family:'IBM Plex Mono',monospace; background:${C.sonar}22; color:${C.sonar}; border:1px solid ${C.sonar}55; border-radius:4px; padding:1px 5px; animation:new-badge 1.8s ease-in-out infinite; }
