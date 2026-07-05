@@ -48,6 +48,8 @@ const styles = {
   app: {
     minHeight: "100vh",
     background: C.bg,
+    backgroundImage: `radial-gradient(${C.line}88 1px, transparent 1px)`,
+    backgroundSize: "28px 28px",
     color: C.text,
     fontFamily: "'Space Grotesk', system-ui, sans-serif",
     padding: "0 0 60px 0",
@@ -250,54 +252,65 @@ function Tendencias({ onSelectCoin }) {
         </button>
       </div>
 
-      <h3 style={{ fontSize: 13, color: C.dim, letterSpacing: 2, textTransform: "uppercase" }}>
-        🔥 Más buscadas ahora (CoinGecko)
-      </h3>
+      {loading && !trending && (
+        <div style={{ padding: "40px 0", textAlign: "center" }}>
+          <div className="loading-dots"><span/><span/><span/></div>
+          <p style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 14 }}>Consultando CoinGecko…</p>
+        </div>
+      )}
+      <div className="section-label" style={{ marginTop: 4 }}>🔥 Más buscadas ahora (CoinGecko)</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 10, marginBottom: 24 }}>
-        {trending?.filter(({ item }) => !hideTop || !item.market_cap_rank || item.market_cap_rank > 20).map(({ item }) => (
-          <div
-            key={item.id}
-            style={{ ...styles.card, cursor: "pointer" }}
-            onClick={() => onSelectCoin(item.id)}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <img src={item.small} alt="" width={28} height={28} style={{ borderRadius: 14 }} />
-              <div>
-                <div style={{ fontWeight: 600 }}>{item.name} <span style={{ color: C.dim, fontSize: 12 }}>{item.symbol}</span></div>
-                <div style={{ ...styles.mono, fontSize: 12, color: C.dim }}>
-                  Rank #{item.market_cap_rank ?? "—"} · {item.data?.price ? fmtUsd(item.data.price) : ""}
+        {trending?.filter(({ item }) => !hideTop || !item.market_cap_rank || item.market_cap_rank > 20).map(({ item }) => {
+          const chg = item.data?.price_change_percentage_24h?.usd;
+          const accentColor = chg == null ? C.line : chg >= 0 ? C.sonar : C.red;
+          return (
+            <div
+              key={item.id}
+              className="card-hover"
+              style={{ ...styles.card, borderLeft: `3px solid ${accentColor}88` }}
+              onClick={() => onSelectCoin(item.id)}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <img src={item.small} alt="" width={32} height={32} style={{ borderRadius: 16 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, display: "flex", alignItems: "baseline", gap: 6 }}>
+                    {item.name}
+                    <span style={{ color: C.dim, fontSize: 11, ...styles.mono }}>{item.symbol}</span>
+                  </div>
+                  <div style={{ ...styles.mono, fontSize: 11, color: C.dim }}>
+                    #{item.market_cap_rank ?? "—"} · {item.data?.price ? fmtUsd(item.data.price) : ""}
+                  </div>
                 </div>
+                {chg != null && (
+                  <span style={{ ...styles.tag(chg >= 0 ? C.sonar : C.red), flexShrink: 0 }}>
+                    {chg >= 0 ? "+" : ""}{chg.toFixed(1)}%
+                  </span>
+                )}
               </div>
             </div>
-            {item.data?.price_change_percentage_24h?.usd != null && (
-              <div style={{ marginTop: 8 }}>
-                <span style={styles.tag(item.data.price_change_percentage_24h.usd >= 0 ? C.sonar : C.red)}>
-                  {item.data.price_change_percentage_24h.usd.toFixed(2)}% 24h
-                </span>
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <h3 style={{ fontSize: 13, color: C.dim, letterSpacing: 2, textTransform: "uppercase" }}>
-        📈 Mayores subidas 24h (top 100 por market cap)
-      </h3>
+      <div className="section-label">📈 Mayores subidas 24h (top 100 por market cap)</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 10 }}>
         {gainers
           ?.filter((c) => !hideTop || !c.market_cap_rank || c.market_cap_rank > 20)
           .filter((c) => maxAgeMonths === 0 || coinAgeMonths(c) <= maxAgeMonths)
           .slice(0, 12)
           .map((c) => (
-          <div key={c.id} style={{ ...styles.card, cursor: "pointer" }} onClick={() => onSelectCoin(c.id)}>
+          <div key={c.id} className="card-hover" style={{ ...styles.card, borderLeft: `3px solid ${(c.price_change_percentage_24h || 0) >= 0 ? C.sonar : C.red}88` }} onClick={() => onSelectCoin(c.id)}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <img src={c.image} alt="" width={28} height={28} style={{ borderRadius: 14 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{c.name} <span style={{ color: C.dim, fontSize: 12 }}>{c.symbol.toUpperCase()}</span></div>
-                <div style={{ ...styles.mono, fontSize: 12, color: C.dim }}>{fmtUsd(c.current_price)} · MC {fmtUsd(c.market_cap)}</div>
+              <img src={c.image} alt="" width={32} height={32} style={{ borderRadius: 16 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, display: "flex", alignItems: "baseline", gap: 6 }}>
+                  {c.name}
+                  <span style={{ color: C.dim, fontSize: 11, ...styles.mono }}>{c.symbol.toUpperCase()}</span>
+                </div>
+                <div style={{ ...styles.mono, fontSize: 11, color: C.dim }}>{fmtUsd(c.current_price)} · MC {fmtUsd(c.market_cap)}</div>
               </div>
-              <span style={styles.tag((c.price_change_percentage_24h || 0) >= 0 ? C.sonar : C.red)}>
-                {(c.price_change_percentage_24h || 0).toFixed(1)}%
+              <span style={{ ...styles.tag((c.price_change_percentage_24h || 0) >= 0 ? C.sonar : C.red), flexShrink: 0, fontWeight: 600 }}>
+                {(c.price_change_percentage_24h || 0) >= 0 ? "+" : ""}{(c.price_change_percentage_24h || 0).toFixed(1)}%
               </span>
             </div>
           </div>
@@ -362,10 +375,15 @@ function CoinDetail({ coinId, onClose }) {
           <h3 style={{ margin: 0 }}>
             {coin ? (
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <img src={coin.image?.small} alt="" width={28} height={28} />
+                <img src={coin.image?.small} alt="" width={28} height={28} style={{ borderRadius: 14 }} />
                 {coin.name} <span style={{ color: C.dim }}>{coin.symbol?.toUpperCase()}</span>
               </span>
-            ) : ("Cargando…")}
+            ) : (
+              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="loading-dots"><span/><span/><span/></div>
+                <span style={{ ...styles.mono, fontSize: 12, color: C.dim }}>Cargando proyecto…</span>
+              </span>
+            )}
           </h3>
           <button style={{ ...styles.btn, padding: "4px 10px" }} onClick={onClose}>✕</button>
         </div>
@@ -495,29 +513,41 @@ function Alpha() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
-        <h2 style={{ margin: 0, fontSize: 18 }}>Alpha · tokens recién lanzados</h2>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.3px" }}>Alpha · tokens recién lanzados</h2>
         <button style={styles.btn} onClick={load} disabled={loading}>
           {loading ? "Escaneando…" : "↻ Escanear"}
         </button>
       </div>
-      <p style={{ color: C.dim, fontSize: 13, marginTop: 0 }}>
+      <p style={{ color: C.dim, fontSize: 13, marginTop: 0, lineHeight: 1.6 }}>
         Pools creados en las últimas horas en todas las redes (GeckoTerminal). ⚠️ Zona de altísimo riesgo:
         la mayoría de tokens nuevos son scams o mueren en días. El filtro de liquidez descarta lo más basura.
       </p>
-      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14, ...styles.mono, fontSize: 12 }}>
-        <span style={{ color: C.dim }}>Liquidez mínima:</span>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 16, ...styles.mono, fontSize: 12 }}>
+        <span style={{ color: C.dim, marginRight: 2 }}>Liquidez mín:</span>
         {[10000, 100000, 1000000, 5000000].map((v) => (
-          <button key={v}
+          <button key={v} className="filter-btn"
             style={{ ...styles.btn, padding: "4px 10px", fontSize: 12,
-              borderColor: minLiq === v ? C.gold : `${C.sonar}44`,
-              color: minLiq === v ? C.gold : C.sonar }}
+              background: minLiq === v ? C.sonar + "1A" : "transparent",
+              borderColor: minLiq === v ? C.sonar : C.line,
+              color: minLiq === v ? C.sonar : C.dim }}
             onClick={() => setMinLiq(v)}>
             {fmtUsd(v)}
           </button>
         ))}
       </div>
-      {err && <div style={{ ...styles.card, borderColor: C.red, color: C.red, marginBottom: 12 }}>{err}</div>}
+      {err && (
+        <div style={{ ...styles.card, borderColor: C.red + "99", background: C.red + "0D", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+          <span style={{ color: C.red, fontSize: 13, lineHeight: 1.5 }}>{err}</span>
+        </div>
+      )}
 
+      {loading && !pools && (
+        <div style={{ padding: "40px 0", textAlign: "center" }}>
+          <div className="loading-dots"><span/><span/><span/></div>
+          <p style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 14 }}>Escaneando GeckoTerminal…</p>
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 10 }}>
         {filtered.map((p) => {
           const a = p.attributes;
@@ -525,24 +555,42 @@ function Alpha() {
           const tokenId = p.relationships?.base_token?.data?.id;
           const tok = tokenId ? tokens[tokenId] : null;
           return (
-            <div key={p.id} style={{ ...styles.card, cursor: "pointer" }} onClick={() => openDetail(p)}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>
-                  {tok?.symbol || a.name?.split("/")[0] || "?"}
-                  <div style={{ color: C.dim, fontSize: 11, fontWeight: 400 }}>{tok?.name || a.name}</div>
+            <div key={p.id} className="card-hover" style={{ ...styles.card }} onClick={() => openDetail(p)}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {tok?.symbol || a.name?.split("/")[0] || "?"}
+                  </div>
+                  <div style={{ color: C.dim, fontSize: 11, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tok?.name || a.name}</div>
                 </div>
-                <span style={styles.tag(C.blue)}>{network}</span>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <span style={styles.tag(C.blue)}>{network}</span>
+                  <span style={{ ...styles.mono, fontSize: 10, color: C.dim, alignSelf: "center" }}>{timeAgo(a.pool_created_at)}</span>
+                </div>
               </div>
-              <div style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 8, lineHeight: 1.8 }}>
-                Precio: <span style={{ color: C.text }}>{fmtUsd(a.base_token_price_usd)}</span><br />
-                Liquidez: {fmtUsd(a.reserve_in_usd)} · Vol 24h: {fmtUsd(a.volume_usd?.h24)}<br />
-                FDV: {fmtUsd(a.fdv_usd)} · Creado hace {timeAgo(a.pool_created_at)}
+              <div className="stat-grid">
+                <div>
+                  <div className="stat-cell-label">Precio</div>
+                  <div className="stat-cell-value accent">{fmtUsd(a.base_token_price_usd)}</div>
+                </div>
+                <div>
+                  <div className="stat-cell-label">Liquidez</div>
+                  <div className="stat-cell-value">{fmtUsd(a.reserve_in_usd)}</div>
+                </div>
+                <div>
+                  <div className="stat-cell-label">Vol 24h</div>
+                  <div className="stat-cell-value">{fmtUsd(a.volume_usd?.h24)}</div>
+                </div>
               </div>
             </div>
           );
         })}
         {pools && filtered.length === 0 && (
-          <div style={{ ...styles.card, color: C.dim }}>Ningún pool nuevo supera ese filtro de liquidez. Baja el filtro o vuelve a escanear.</div>
+          <div style={{ ...styles.card, textAlign: "center", padding: "36px 16px", gridColumn: "1/-1" }}>
+            <div style={{ fontSize: 28, marginBottom: 10 }}>🔍</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Sin pools con esa liquidez</div>
+            <div style={{ fontSize: 12, color: C.dim }}>Baja el filtro o vuelve a escanear.</div>
+          </div>
         )}
       </div>
 
@@ -555,7 +603,12 @@ function Alpha() {
               <h3 style={{ margin: 0 }}>{detail.pool.attributes.name}</h3>
               <button style={{ ...styles.btn, padding: "4px 10px" }} onClick={() => setDetail(null)}>✕</button>
             </div>
-            {detail.loading && <p style={{ color: C.dim }}>Buscando info del proyecto…</p>}
+            {detail.loading && (
+              <div style={{ padding: "20px 0", textAlign: "center" }}>
+                <div className="loading-dots"><span/><span/><span/></div>
+                <p style={{ ...styles.mono, fontSize: 12, color: C.dim, marginTop: 12 }}>Buscando info del proyecto…</p>
+              </div>
+            )}
             {!detail.loading && detail.info && (
               <>
                 <p style={{ fontSize: 13, lineHeight: 1.6 }}>
@@ -1003,7 +1056,11 @@ function Carteras() {
     await saveWalletData(next);
   };
 
-  if (!data) return <p style={{ color: C.dim }}>Cargando…</p>;
+  if (!data) return (
+    <div style={{ padding: "48px 0", textAlign: "center" }}>
+      <div className="loading-dots"><span/><span/><span/></div>
+    </div>
+  );
 
   const alreadyTracked = new Set(data.wallets.map((w) => w.address.toLowerCase()));
   const unit = (w) => (w.token ? w.token.symbol : CHAIN_META[w.chain]?.native || "");
@@ -1011,15 +1068,15 @@ function Carteras() {
 
   return (
     <div>
-      <h2 style={{ margin: "0 0 4px", fontSize: 18 }}>Escáner de whales · multi-chain</h2>
+      <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, letterSpacing: "-0.3px" }}>Escáner de whales · multi-chain</h2>
       <p style={{ color: C.dim, fontSize: 13, marginTop: 0 }}>
         Escanea Ethereum, BNB Chain, Bitcoin o Solana en vivo. En ETH/BSC/BTC detecta el
         <span style={{ color: C.sonar }}> flujo neto reciente (acumulando)</span>; en Solana muestra los
         <span style={{ color: C.sonar }}> mayores holders actuales</span>, y al rastrearlos detectas si acumulan entre visitas.
       </p>
 
-      <div style={{ ...styles.card, marginBottom: 14 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+      <div style={{ ...styles.card, marginBottom: 16, background: C.surface2, borderColor: C.line }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
           {[
             { id: "eth", label: "Ξ ETH" },
             { id: "bsc", label: "◆ BNB (BSC)" },
@@ -1054,10 +1111,11 @@ function Carteras() {
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
               {tokenPresetList.map((p) => (
-                <button key={p.symbol}
+                <button key={p.symbol} className="filter-btn"
                   style={{ ...styles.btn, padding: "4px 10px", fontSize: 12,
-                    borderColor: !customContract && preset.symbol === p.symbol ? C.gold : C.line,
-                    color: !customContract && preset.symbol === p.symbol ? C.gold : C.dim }}
+                    background: !customContract && preset.symbol === p.symbol ? C.sonar + "1A" : "transparent",
+                    borderColor: !customContract && preset.symbol === p.symbol ? C.sonar : C.line,
+                    color: !customContract && preset.symbol === p.symbol ? C.sonar : C.dim }}
                   onClick={() => { setPreset(p); setCustomContract(""); }}>
                   {p.symbol}
                 </button>
@@ -1085,24 +1143,40 @@ function Carteras() {
                 onChange={(e) => setMinAmount(e.target.value)} inputMode="decimal" />
             </>
           )}
-          <button style={{ ...styles.btn, borderColor: C.gold + "77", color: C.gold, fontWeight: 600 }}
+          <button
+            className={busy ? "" : "btn-scan"}
+            style={{ ...styles.btn, borderColor: C.gold + "88", color: C.gold, fontWeight: 600, background: C.gold + "0F" }}
             onClick={runScan} disabled={busy}>
             {busy ? "Escaneando…" : "📡 Escanear blockchain"}
           </button>
         </div>
-        {progress && <div style={{ ...styles.mono, fontSize: 12, color: C.sonar, marginTop: 8 }}>{progress}</div>}
-        {err && <div style={{ color: C.red, fontSize: 13, marginTop: 8 }}>{err}</div>}
+        {progress && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+            <div className="loading-dots"><span/><span/><span/></div>
+            <span style={{ ...styles.mono, fontSize: 12, color: C.sonar }}>{progress}</span>
+          </div>
+        )}
+        {err && (
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginTop: 10, padding: "10px 12px", borderRadius: 8, background: C.red + "0D", border: `1px solid ${C.red}55` }}>
+            <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
+            <span style={{ color: C.red, fontSize: 13, lineHeight: 1.5 }}>{err}</span>
+          </div>
+        )}
       </div>
 
       {results && (
         <div style={{ marginBottom: 24 }}>
-          <div style={{ ...styles.mono, fontSize: 12, color: C.dim, marginBottom: 10 }}>
-            {CHAIN_META[results.chain].name} · Ventana: {results.window} · {fmtNum(results.scanned, 0)} registros ·
-            {results.holdersMode ? " ordenado por balance actual" : ` ordenado por flujo neto de ${results.symbol}`}
+          <div style={{ ...styles.mono, fontSize: 11, color: C.dim, marginBottom: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <span style={styles.tag(CHAIN_META[results.chain].color)}>{CHAIN_META[results.chain].name}</span>
+            <span>Ventana: {results.window}</span>
+            <span>{fmtNum(results.scanned, 0)} registros</span>
+            <span>{results.holdersMode ? "ordenado por balance actual" : `flujo neto ${results.symbol}`}</span>
           </div>
           {results.ranking.length === 0 && (
-            <div style={{ ...styles.card, color: C.dim }}>
-              Nada superó el mínimo en esta ventana. Baja el monto mínimo y vuelve a escanear.
+            <div style={{ ...styles.card, textAlign: "center", padding: "36px 16px" }}>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>📭</div>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>Sin resultados</div>
+              <div style={{ fontSize: 12, color: C.dim }}>Nada superó el mínimo. Baja el monto y vuelve a escanear.</div>
             </div>
           )}
           <div style={{ display: "grid", gap: 8 }}>
@@ -1111,17 +1185,20 @@ function Carteras() {
               const isContract = contractTags[row.address];
               const tracked = alreadyTracked.has(row.address.toLowerCase());
               return (
-                <div key={row.address + i} style={{ ...styles.card, borderLeft: `3px solid ${row.net >= 0 ? C.sonar : C.red}` }}>
+                <div key={row.address + i} className="card-in" style={{ ...styles.card, borderLeft: `3px solid ${row.net >= 0 ? C.sonar : C.red}`, animationDelay: `${i * 40}ms` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600, fontSize: 13, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={{ color: C.dim }}>#{i + 1}</span>
+                        <span style={{
+                          ...styles.mono, fontSize: 12, fontWeight: 700,
+                          color: i === 0 ? C.gold : i < 3 ? C.sonar : C.dim,
+                        }}>#{i + 1}</span>
                         <span style={styles.tag(CHAIN_META[results.chain].color)}>{results.chain.toUpperCase()}</span>
                         {known && <span style={styles.tag(C.gold)}>🏦 {known}</span>}
                         {isContract === true && <span style={styles.tag(C.blue)}>contrato</span>}
                         {isContract === false && <span style={styles.tag(C.sonar)}>cartera (EOA)</span>}
                       </div>
-                      <div style={{ ...styles.mono, fontSize: 11, color: C.dim, wordBreak: "break-all", marginTop: 4 }}>{row.address}</div>
+                      <div style={{ ...styles.mono, fontSize: 11, color: C.dim, marginTop: 4 }} title={row.address}>{truncAddr(row.address)}</div>
                     </div>
                     <div style={{ ...styles.mono, fontSize: 12, textAlign: "right" }}>
                       <div style={{ color: row.net >= 0 ? C.sonar : C.red, fontWeight: 700, fontSize: 14 }}>
@@ -1151,10 +1228,8 @@ function Carteras() {
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 15, color: C.dim, letterSpacing: 2, textTransform: "uppercase" }}>
-          🐋 Carteras rastreadas ({data.wallets.length})
-        </h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div className="section-label" style={{ margin: 0 }}>🐋 Carteras rastreadas ({data.wallets.length})</div>
         {data.wallets.length > 0 && (
           <button style={styles.btn} onClick={refreshAll} disabled={busy}>
             {busy ? "…" : "↻ Actualizar balances"}
@@ -1180,7 +1255,7 @@ function Carteras() {
                       {w.chain.toUpperCase()}{w.token ? " · " + w.token.symbol : ""}
                     </span>
                   </div>
-                  <div style={{ ...styles.mono, fontSize: 11, color: C.dim, wordBreak: "break-all" }}>{w.address}</div>
+                  <div style={{ ...styles.mono, fontSize: 11, color: C.dim }} title={w.address}>{truncAddr(w.address)}</div>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <a href={CHAIN_META[w.chain]?.explorer(w.address)} target="_blank" rel="noreferrer"
@@ -1216,8 +1291,10 @@ function Carteras() {
           );
         })}
         {data.wallets.length === 0 && (
-          <div style={{ ...styles.card, color: C.dim }}>
-            Aún no rastreas ninguna cartera. Escanea arriba y pulsa 🔭 Rastrear.
+          <div style={{ ...styles.card, textAlign: "center", padding: "36px 16px" }}>
+            <div style={{ fontSize: 28, marginBottom: 10 }}>🔭</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Sin carteras rastreadas</div>
+            <div style={{ fontSize: 12, color: C.dim }}>Escanea la blockchain arriba y pulsa Rastrear en cualquier dirección.</div>
           </div>
         )}
       </div>
@@ -1245,34 +1322,59 @@ export default function App() {
         a { transition: opacity .15s; }
         button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid ${C.sonar}; outline-offset: 2px; }
         input:focus { border-color: ${C.sonar}77 !important; outline: none; box-shadow: 0 0 0 3px ${C.sonar}12 !important; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
+
+        @keyframes pulse { 0% { transform:scale(1); opacity:.8; } 100% { transform:scale(2.6); opacity:0; } }
         @keyframes dot-blink { 0%,80%,100% { opacity:0.15; } 40% { opacity:1; } }
+        @keyframes scan-sweep { 0% { top:-2px; opacity:0; } 3% { opacity:1; } 97% { opacity:1; } 100% { top:110%; opacity:0; } }
+        @keyframes btn-pulse { 0%,100% { box-shadow:0 0 10px ${C.gold}33, 0 2px 8px rgba(0,0,0,.4); } 50% { box-shadow:0 0 26px ${C.gold}55, 0 2px 8px rgba(0,0,0,.4); } }
+        @keyframes card-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
         @media (prefers-reduced-motion: reduce) {
-          .sonar-dot::after { animation: none !important; }
-          .loading-dots span { animation: none !important; opacity:1; }
+          .sonar-dot::after, .scan-sweep, .btn-scan { animation:none !important; }
+          .loading-dots span { animation:none !important; opacity:1; }
         }
-        .sonar-dot { position: relative; width: 10px; height: 10px; border-radius: 50%; background: ${C.sonar}; display: inline-block; }
-        .sonar-dot::after { content:''; position:absolute; inset:0; border-radius:50%; border:1px solid ${C.sonar}; animation: pulse 2s ease-out infinite; }
-        .card-hover { cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .15s; }
-        .card-hover:hover { border-color: ${C.sonar}44 !important; box-shadow: 0 6px 28px rgba(63,217,192,.1) !important; transform: translateY(-1px); }
-        .card-hover:active { transform: translateY(0); }
-        .section-label { font-size: 11px; color: ${C.dim}; letter-spacing: 2.5px; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 0; border: none; background: none; }
-        .section-label::before { content:''; width:3px; height:13px; border-radius:2px; background: ${C.sonar}; display:inline-block; flex-shrink:0; }
+
+        .sonar-dot { position:relative; width:10px; height:10px; border-radius:50%; background:${C.sonar}; display:inline-block; }
+        .sonar-dot::after { content:''; position:absolute; inset:0; border-radius:50%; border:1px solid ${C.sonar}; animation:pulse 2s ease-out infinite; }
+
+        .scan-sweep { position:absolute; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent 0%, ${C.sonar}44 30%, ${C.sonar}99 50%, ${C.sonar}44 70%, transparent 100%); animation:scan-sweep 8s linear infinite; pointer-events:none; z-index:2; }
+
+        .card-hover { cursor:pointer; transition:box-shadow .2s, transform .15s; }
+        .card-hover:hover { box-shadow:0 8px 32px rgba(63,217,192,.12), 0 0 0 1px ${C.sonar}44 !important; transform:translateY(-1px); }
+        .card-hover:active { transform:translateY(0); }
+
+        .section-label { font-size:11px; color:${C.dim}; letter-spacing:2.5px; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; display:flex; align-items:center; gap:8px; margin:0 0 12px; padding:0; border:none; background:none; }
+        .section-label::before { content:''; width:3px; height:13px; border-radius:2px; background:${C.sonar}; display:inline-block; flex-shrink:0; }
+
         .loading-dots { display:flex; align-items:center; justify-content:center; gap:5px; }
-        .loading-dots span { display:inline-block; width:6px; height:6px; border-radius:50%; background:${C.sonar}; animation: dot-blink 1.2s infinite; }
+        .loading-dots span { display:inline-block; width:6px; height:6px; border-radius:50%; background:${C.sonar}; animation:dot-blink 1.2s infinite; }
         .loading-dots span:nth-child(2) { animation-delay:.2s; }
         .loading-dots span:nth-child(3) { animation-delay:.4s; }
-        .filter-btn { transition: border-color .15s, color .15s, background .15s; }
-        .filter-btn:hover { border-color: ${C.sonar}66 !important; color: ${C.text} !important; }
+
+        .filter-btn { transition:border-color .15s, color .15s, background .15s; }
+        .filter-btn:hover { border-color:${C.sonar}66 !important; color:${C.text} !important; }
+
+        .btn-scan { animation:btn-pulse 2.5s ease-in-out infinite; }
+
+        .card-in { animation:card-in .3s ease-out both; }
+
+        .nav-tab { background:none !important; border-left:none !important; border-right:none !important; border-top:none !important; border-radius:0 !important; padding:10px 20px !important; font-size:13px !important; border-bottom-width:2px !important; border-bottom-style:solid !important; cursor:pointer; font-family:'IBM Plex Mono',monospace; letter-spacing:.5px; transition:color .15s, border-color .15s !important; }
+
+        .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px 6px; margin-top:10px; }
+        .stat-cell-label { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; color:${C.dim}; margin-bottom:2px; }
+        .stat-cell-value { font-size:12px; font-family:'IBM Plex Mono',monospace; color:${C.text}; }
+        .stat-cell-value.accent { color:${C.sonar}; font-weight:600; }
       `}</style>
 
       <header style={{
-        padding: "24px 20px 16px",
+        padding: "20px 20px 0",
         borderBottom: `1px solid ${C.line}`,
-        background: `radial-gradient(ellipse 70% 120% at 15% 0%, ${C.sonar}0D 0%, transparent 60%), linear-gradient(180deg, ${C.surface2} 0%, ${C.bg} 100%)`,
+        background: `radial-gradient(ellipse 70% 140% at 15% 0%, ${C.sonar}0F 0%, transparent 55%), linear-gradient(180deg, ${C.surface2}F2 0%, ${C.bg}F2 100%)`,
         position: "sticky", top: 0, zIndex: 40,
-        backdropFilter: "blur(12px)",
+        backdropFilter: "blur(16px)",
+        overflow: "clip",
       }}>
+        <div className="scan-sweep" />
         <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 1100, margin: "0 auto", flexWrap: "wrap" }}>
           <span className="sonar-dot" />
           <h1 style={{ margin: 0, fontSize: 22, letterSpacing: 4, fontWeight: 700 }}>
@@ -1282,13 +1384,11 @@ export default function App() {
             carteras · alpha · tendencias — datos en vivo, sin API keys
           </span>
         </div>
-        <nav style={{ display: "flex", gap: 6, marginTop: 14, maxWidth: 1100, margin: "14px auto 0", flexWrap: "wrap" }}>
+        <nav style={{ display: "flex", gap: 0, marginTop: 16, maxWidth: 1100, margin: "16px auto 0", borderTop: `1px solid ${C.line}33` }}>
           {tabs.map((t) => (
-            <button key={t.id}
-              style={{ ...styles.btn,
-                padding: "9px 18px",
-                background: tab === t.id ? C.sonar + "22" : "transparent",
-                borderColor: tab === t.id ? C.sonar : C.line,
+            <button key={t.id} className="nav-tab"
+              style={{
+                borderBottomColor: tab === t.id ? C.sonar : "transparent",
                 color: tab === t.id ? C.sonar : C.dim,
                 fontWeight: tab === t.id ? 600 : 400,
               }}
