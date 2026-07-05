@@ -1016,6 +1016,9 @@ function Carteras() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [err, setErr] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(null);
+  const [, forceUpdate] = useState(0);
 
   useEffect(() => { loadWalletData().then(setData); }, []);
 
@@ -1136,6 +1139,7 @@ function Carteras() {
     const next = { ...data, snapshots: snaps };
     setData(next);
     await saveWalletData(next);
+    setLastRefreshTime(Date.now());
     setBusy(false);
   };
 
@@ -1147,6 +1151,24 @@ function Carteras() {
     setData(next);
     await saveWalletData(next);
   };
+
+  // Auto-refresh cada 5 min
+  useEffect(() => {
+    if (!autoRefresh || !data?.wallets?.length) return;
+    const id = setInterval(() => { refreshAll(); }, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [autoRefresh, data?.wallets?.length]);
+
+  // Ticker para "hace X min"
+  useEffect(() => {
+    if (!lastRefreshTime) return;
+    const id = setInterval(() => forceUpdate((n) => n + 1), 30000);
+    return () => clearInterval(id);
+  }, [lastRefreshTime]);
+
+  const agoText = lastRefreshTime
+    ? (() => { const m = Math.floor((Date.now() - lastRefreshTime) / 60000); return m < 1 ? "hace menos de 1 min" : `hace ${m} min`; })()
+    : null;
 
   if (!data) return (
     <div style={{ padding: "48px 0", textAlign: "center" }}>
@@ -1323,12 +1345,25 @@ function Carteras() {
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <div className="section-label" style={{ margin: 0 }}>🐋 Carteras rastreadas ({data.wallets.length})</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div className="section-label" style={{ margin: 0 }}>🐋 Carteras rastreadas ({data.wallets.length})</div>
+          {agoText && <span style={{ ...styles.mono, fontSize: 11, color: C.dim }}>Última actualización: {agoText}</span>}
+        </div>
         {data.wallets.length > 0 && (
-          <button style={styles.btn} onClick={refreshAll} disabled={busy}>
-            {busy ? "…" : "↻ Actualizar balances"}
-          </button>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <button
+              style={{ ...styles.btn, padding: "4px 10px", fontSize: 11,
+                background: autoRefresh ? C.sonar + "1A" : "transparent",
+                borderColor: autoRefresh ? C.sonar : C.line,
+                color: autoRefresh ? C.sonar : C.dim }}
+              onClick={() => setAutoRefresh(!autoRefresh)}>
+              {autoRefresh ? "✓ " : ""}Auto ↻ cada 5 min
+            </button>
+            <button style={styles.btn} onClick={refreshAll} disabled={busy}>
+              {busy ? "…" : "↻ Actualizar balances"}
+            </button>
+          </div>
         )}
       </div>
       <div style={{ display: "grid", gap: 10 }}>
