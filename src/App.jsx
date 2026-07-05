@@ -1054,7 +1054,35 @@ function Carteras() {
           res = await scanEvmToken(tokenChain, contract, decimals, min, tokenChain === "bsc" ? 7000 : 1800, setProgress);
         }
       }
-      setResults({ ...res, chain: resultChain, symbol, tokenContract: mode === "token" ? (customContract.trim() || preset.contract) : null });
+      // Obtener precio USD del activo escaneado
+      let priceUsd = null;
+      try {
+        if (mode === "eth" || mode === "bsc" || mode === "btc" || mode === "sol") {
+          const cgIds = { eth: "ethereum", bsc: "binancecoin", btc: "bitcoin", sol: "solana" };
+          const pr = await fetchRetry(
+            `https://api.coingecko.com/api/v3/simple/price?ids=${cgIds[mode]}&vs_currencies=usd`
+          );
+          const pj = await pr.json();
+          priceUsd = pj[cgIds[mode]]?.usd || null;
+        } else if (mode === "token") {
+          const contract = customContract.trim() || preset.contract;
+          if (tokenChain === "sol") {
+            const pr = await fetchRetry(
+              `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${contract}&vs_currencies=usd`
+            );
+            const pj = await pr.json();
+            priceUsd = pj[contract.toLowerCase()]?.usd || pj[Object.keys(pj)[0]]?.usd || null;
+          } else {
+            const platform = tokenChain === "bsc" ? "binance-smart-chain" : "ethereum";
+            const pr = await fetchRetry(
+              `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=${contract}&vs_currencies=usd`
+            );
+            const pj = await pr.json();
+            priceUsd = pj[contract.toLowerCase()]?.usd || pj[Object.keys(pj)[0]]?.usd || null;
+          }
+        }
+      } catch {}
+      setResults({ ...res, chain: resultChain, symbol, tokenContract: mode === "token" ? (customContract.trim() || preset.contract) : null, priceUsd });
       if ((resultChain === "eth" || resultChain === "bsc") && res.ranking.length) {
         setProgress("Identificando contratos vs carteras…");
         setContractTags(await tagContracts(resultChain, res.ranking.map((r) => r.address)));
@@ -1268,6 +1296,9 @@ function Carteras() {
                       <div style={{ color: row.net >= 0 ? C.sonar : C.red, fontWeight: 700, fontSize: 14 }}>
                         {results.holdersMode ? "" : row.net >= 0 ? "+" : ""}{fmtNum(row.net, 2)} {results.symbol}
                       </div>
+                      {results.priceUsd != null && (
+                        <div style={{ color: C.dim, fontSize: 11 }}>≈ {fmtUsd(Math.abs(row.net) * results.priceUsd)}</div>
+                      )}
                       {!results.holdersMode && (
                         <div style={{ color: C.dim }}>↓ {fmtNum(row.in, 2)} · ↑ {fmtNum(row.out, 2)} · {row.txs} mov.</div>
                       )}
