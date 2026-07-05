@@ -359,97 +359,156 @@ function CoinDetail({ coinId, onClose }) {
     { label: "⌨️ GitHub", url: links.repos_url?.github?.[0] },
   ].filter((l) => l.url);
 
+  const chg24 = coin?.market_data?.price_change_percentage_24h || 0;
+
   return (
     <div
       style={{
-        position: "fixed", inset: 0, background: "#000000AA", zIndex: 50,
-        display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        position: "fixed", inset: 0,
+        background: "rgba(4,10,16,.85)",
+        backdropFilter: "blur(10px)",
+        zIndex: 50,
+        display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 0 0 0",
       }}
       onClick={onClose}
     >
       <div
-        style={{ ...styles.card, maxWidth: 560, width: "100%", maxHeight: "85vh", overflowY: "auto", background: C.surface2 }}
+        className="modal-body"
+        style={{
+          ...styles.card,
+          width: "100%", maxWidth: 600,
+          maxHeight: "90vh", overflowY: "auto",
+          background: C.surface2,
+          borderRadius: "16px 16px 0 0",
+          borderBottom: "none",
+          padding: "0 0 40px",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <h3 style={{ margin: 0 }}>
+        {/* Header del modal */}
+        <div style={{
+          position: "sticky", top: 0,
+          background: C.surface2,
+          borderBottom: `1px solid ${C.line}`,
+          padding: "16px 20px",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          borderRadius: "16px 16px 0 0",
+          zIndex: 1,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {coin ? (
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <img src={coin.image?.small} alt="" width={28} height={28} style={{ borderRadius: 14 }} />
-                {coin.name} <span style={{ color: C.dim }}>{coin.symbol?.toUpperCase()}</span>
-              </span>
+              <>
+                <img src={coin.image?.small} alt="" width={36} height={36} style={{ borderRadius: 18 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.3px" }}>{coin.name}</div>
+                  <div style={{ ...styles.mono, fontSize: 11, color: C.dim }}>{coin.symbol?.toUpperCase()} · Rank #{coin.market_cap_rank ?? "—"}</div>
+                </div>
+              </>
             ) : (
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div className="loading-dots"><span/><span/><span/></div>
-                <span style={{ ...styles.mono, fontSize: 12, color: C.dim }}>Cargando proyecto…</span>
-              </span>
-            )}
-          </h3>
-          <button style={{ ...styles.btn, padding: "4px 10px" }} onClick={onClose}>✕</button>
-        </div>
-        {err && <p style={{ color: C.red }}>{err}</p>}
-        {coin && (
-          <>
-            <div style={{ ...styles.mono, fontSize: 13, color: C.dim, margin: "10px 0" }}>
-              Precio: <span style={{ color: C.text }}>{fmtUsd(coin.market_data?.current_price?.usd)}</span>
-              {"  ·  "}MC: {fmtUsd(coin.market_data?.market_cap?.usd)}
-              {"  ·  "}Rank #{coin.market_cap_rank ?? "—"}
-              {"  ·  "}24h:{" "}
-              <span style={{ color: (coin.market_data?.price_change_percentage_24h || 0) >= 0 ? C.sonar : C.red }}>
-                {(coin.market_data?.price_change_percentage_24h || 0).toFixed(2)}%
-              </span>
-            </div>
-            {coin.community_data && (
-              <div style={{ marginBottom: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {coin.community_data.twitter_followers > 0 && (
-                  <span style={styles.tag(C.blue)}>𝕏 {fmtNum(coin.community_data.twitter_followers, 0)} seguidores</span>
-                )}
-                {coin.community_data.reddit_subscribers > 0 && (
-                  <span style={styles.tag(C.gold)}>Reddit {fmtNum(coin.community_data.reddit_subscribers, 0)}</span>
-                )}
-                {coin.watchlist_portfolio_users > 0 && (
-                  <span style={styles.tag(C.sonar)}>👁 {fmtNum(coin.watchlist_portfolio_users, 0)} en watchlist</span>
-                )}
+                <span style={{ ...styles.mono, fontSize: 12, color: C.dim }}>Cargando…</span>
               </div>
             )}
-            {coin.platforms && Object.entries(coin.platforms).filter(([, a]) => a).length > 0 && (
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, color: C.dim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
-                  📜 Contratos oficiales
+          </div>
+          <button style={{ ...styles.btn, padding: "6px 12px", background: "transparent", borderColor: C.line }} onClick={onClose}>✕</button>
+        </div>
+
+        <div style={{ padding: "0 20px" }}>
+          {err && (
+            <div style={{ marginTop: 16, padding: "10px 12px", borderRadius: 8, background: C.red + "0D", border: `1px solid ${C.red}44`, color: C.red, fontSize: 13 }}>
+              ⚠️ {err}
+            </div>
+          )}
+          {coin && (
+            <>
+              {/* Stat grid 2×2 */}
+              <div className="stat-grid-4">
+                <div>
+                  <div className="stat-cell-label">Precio</div>
+                  <div className="stat-cell-value accent">{fmtUsd(coin.market_data?.current_price?.usd)}</div>
                 </div>
-                {Object.entries(coin.platforms).filter(([, a]) => a).map(([net, addr]) => (
-                  <div key={net} style={{ ...styles.mono, fontSize: 11, display: "flex", alignItems: "center", gap: 8, marginBottom: 5, flexWrap: "wrap" }}>
-                    <span style={styles.tag(C.blue)}>{net}</span>
-                    <span style={{ color: C.text, wordBreak: "break-all", flex: 1, minWidth: 180 }}>{addr}</span>
-                    <button
-                      style={{ ...styles.btn, padding: "2px 10px", fontSize: 11,
-                        color: copied === net ? C.sonar : C.gold,
-                        borderColor: (copied === net ? C.sonar : C.gold) + "55" }}
-                      onClick={() => copyAddr(net, addr)}>
-                      {copied === net ? "✓ copiado" : "copiar"}
-                    </button>
+                <div>
+                  <div className="stat-cell-label">Market Cap</div>
+                  <div className="stat-cell-value">{fmtUsd(coin.market_data?.market_cap?.usd)}</div>
+                </div>
+                <div>
+                  <div className="stat-cell-label">24h</div>
+                  <div className={`stat-cell-value ${chg24 >= 0 ? "up" : "down"}`}>
+                    {chg24 >= 0 ? "+" : ""}{chg24.toFixed(2)}%
                   </div>
+                </div>
+                <div>
+                  <div className="stat-cell-label">Vol 24h</div>
+                  <div className="stat-cell-value">{fmtUsd(coin.market_data?.total_volume?.usd)}</div>
+                </div>
+              </div>
+
+              {/* Social tags */}
+              {coin.community_data && (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+                  {coin.community_data.twitter_followers > 0 && (
+                    <span style={styles.tag(C.blue)}>𝕏 {fmtNum(coin.community_data.twitter_followers, 0)}</span>
+                  )}
+                  {coin.community_data.reddit_subscribers > 0 && (
+                    <span style={styles.tag(C.gold)}>Reddit {fmtNum(coin.community_data.reddit_subscribers, 0)}</span>
+                  )}
+                  {coin.watchlist_portfolio_users > 0 && (
+                    <span style={styles.tag(C.sonar)}>👁 {fmtNum(coin.watchlist_portfolio_users, 0)}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Contratos */}
+              {coin.platforms && Object.entries(coin.platforms).filter(([, a]) => a).length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div className="section-label">📜 Contratos oficiales</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {Object.entries(coin.platforms).filter(([, a]) => a).map(([net, addr]) => (
+                      <div key={net} style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        background: C.surface, border: `1px solid ${C.line}`,
+                        borderRadius: 8, padding: "8px 10px",
+                      }}>
+                        <span style={styles.tag(C.blue)}>{net}</span>
+                        <span style={{ ...styles.mono, fontSize: 11, color: C.dim, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{addr}</span>
+                        <button
+                          style={{ ...styles.btn, padding: "2px 10px", fontSize: 11, flexShrink: 0,
+                            color: copied === net ? C.sonar : C.gold,
+                            borderColor: (copied === net ? C.sonar : C.gold) + "55" }}
+                          onClick={() => copyAddr(net, addr)}>
+                          {copied === net ? "✓" : "copiar"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {coin.platforms && Object.entries(coin.platforms).filter(([, a]) => a).length === 0 && (
+                <div style={{ ...styles.mono, fontSize: 11, color: C.dim, marginBottom: 14 }}>
+                  Moneda nativa (L1) — sin contrato de token.
+                </div>
+              )}
+
+              {/* Descripción */}
+              {desc && (
+                <p style={{ fontSize: 13, lineHeight: 1.7, color: C.dim, marginBottom: 16 }}>
+                  {desc.replace(/<[^>]+>/g, "").slice(0, 1000) + (desc.length > 1000 ? "…" : "")}
+                </p>
+              )}
+
+              {/* Links */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {linkList.map((l) => (
+                  <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
+                    style={{ ...styles.btn, textDecoration: "none", fontSize: 12, background: C.surface }}>
+                    {l.label}
+                  </a>
                 ))}
               </div>
-            )}
-            {coin.platforms && Object.entries(coin.platforms).filter(([, a]) => a).length === 0 && (
-              <div style={{ ...styles.mono, fontSize: 11, color: C.dim, marginBottom: 12 }}>
-                Sin contrato: es moneda nativa de su propia blockchain (L1).
-              </div>
-            )}
-            <p style={{ fontSize: 13, lineHeight: 1.6, color: C.text, whiteSpace: "pre-wrap" }}>
-              {desc ? desc.replace(/<[^>]+>/g, "").slice(0, 1200) + (desc.length > 1200 ? "…" : "") : "Sin descripción disponible."}
-            </p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-              {linkList.map((l) => (
-                <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
-                  style={{ ...styles.btn, textDecoration: "none", fontSize: 12 }}>
-                  {l.label}
-                </a>
-              ))}
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -563,9 +622,14 @@ function Alpha() {
                   </div>
                   <div style={{ color: C.dim, fontSize: 11, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tok?.name || a.name}</div>
                 </div>
-                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
                   <span style={styles.tag(C.blue)}>{network}</span>
-                  <span style={{ ...styles.mono, fontSize: 10, color: C.dim, alignSelf: "center" }}>{timeAgo(a.pool_created_at)}</span>
+                  {(() => {
+                    const mins = (Date.now() - new Date(a.pool_created_at).getTime()) / 60000;
+                    return mins < 60
+                      ? <span className="badge-new">NEW</span>
+                      : <span style={{ ...styles.mono, fontSize: 10, color: C.dim }}>{timeAgo(a.pool_created_at)}</span>;
+                  })()}
                 </div>
               </div>
               <div className="stat-grid">
@@ -1246,11 +1310,14 @@ function Carteras() {
           const deltaTotal = first && snaps.length > 1 ? last.balance - first.balance : 0;
           const state = snaps.length < 2 ? null : deltaPrev > 0 ? "acc" : deltaPrev < 0 ? "dist" : "flat";
           return (
-            <div key={w.id} style={styles.card}>
+            <div key={w.id} style={{
+              ...styles.card,
+              borderLeft: `3px solid ${state === "acc" ? C.sonar : state === "dist" ? C.red : C.line}`,
+            }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
                 <div>
-                  <div style={{ fontWeight: 600 }}>
-                    🐋 {w.label}{" "}
+                  <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    {w.label}{" "}
                     <span style={styles.tag(CHAIN_META[w.chain]?.color || C.blue)}>
                       {w.chain.toUpperCase()}{w.token ? " · " + w.token.symbol : ""}
                     </span>
@@ -1303,9 +1370,19 @@ function Carteras() {
 }
 
 // ================= APP =================
+function useClock() {
+  const [time, setTime] = useState(() => new Date().toUTCString().slice(17, 22) + " UTC");
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date().toUTCString().slice(17, 22) + " UTC"), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return time;
+}
+
 export default function App() {
   const [tab, setTab] = useState("tendencias");
   const [selectedCoin, setSelectedCoin] = useState(null);
+  const clock = useClock();
 
   const tabs = [
     { id: "tendencias", label: "📈 Tendencias" },
@@ -1328,6 +1405,9 @@ export default function App() {
         @keyframes scan-sweep { 0% { top:-2px; opacity:0; } 3% { opacity:1; } 97% { opacity:1; } 100% { top:110%; opacity:0; } }
         @keyframes btn-pulse { 0%,100% { box-shadow:0 0 10px ${C.gold}33, 0 2px 8px rgba(0,0,0,.4); } 50% { box-shadow:0 0 26px ${C.gold}55, 0 2px 8px rgba(0,0,0,.4); } }
         @keyframes card-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes modal-up { from { opacity:0; transform:translateY(24px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes tab-fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes new-badge { 0%,100% { box-shadow:0 0 0 0 ${C.sonar}55; } 60% { box-shadow:0 0 0 5px transparent; } }
 
         @media (prefers-reduced-motion: reduce) {
           .sonar-dot::after, .scan-sweep, .btn-scan { animation:none !important; }
@@ -1361,9 +1441,16 @@ export default function App() {
         .nav-tab { background:none !important; border-left:none !important; border-right:none !important; border-top:none !important; border-radius:0 !important; padding:10px 20px !important; font-size:13px !important; border-bottom-width:2px !important; border-bottom-style:solid !important; cursor:pointer; font-family:'IBM Plex Mono',monospace; letter-spacing:.5px; transition:color .15s, border-color .15s !important; }
 
         .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px 6px; margin-top:10px; }
-        .stat-cell-label { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; color:${C.dim}; margin-bottom:2px; }
-        .stat-cell-value { font-size:12px; font-family:'IBM Plex Mono',monospace; color:${C.text}; }
-        .stat-cell-value.accent { color:${C.sonar}; font-weight:600; }
+        .stat-grid-4 { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; margin:14px 0; background:${C.line}; border-radius:8px; overflow:hidden; }
+        .stat-grid-4 > div { background:${C.surface}; padding:10px 12px; }
+        .stat-cell-label { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; color:${C.dim}; margin-bottom:3px; }
+        .stat-cell-value { font-size:13px; font-family:'IBM Plex Mono',monospace; color:${C.text}; font-weight:600; }
+        .stat-cell-value.accent { color:${C.sonar}; }
+        .stat-cell-value.up { color:${C.sonar}; }
+        .stat-cell-value.down { color:${C.red}; }
+        .modal-body { animation:modal-up .25s cubic-bezier(.22,1,.36,1) both; }
+        .tab-content { animation:tab-fade .2s ease-out both; }
+        .badge-new { display:inline-flex; align-items:center; font-size:9px; letter-spacing:1px; font-family:'IBM Plex Mono',monospace; background:${C.sonar}22; color:${C.sonar}; border:1px solid ${C.sonar}55; border-radius:4px; padding:1px 5px; animation:new-badge 1.8s ease-in-out infinite; }
       `}</style>
 
       <header style={{
@@ -1400,15 +1487,18 @@ export default function App() {
       </header>
 
       <main style={{ maxWidth: 1100, margin: "20px auto 0", padding: "0 16px" }}>
-        {tab === "tendencias" && <Tendencias onSelectCoin={setSelectedCoin} />}
-        {tab === "alpha" && <Alpha />}
-        {tab === "carteras" && <Carteras />}
+        <div key={tab} className="tab-content">
+          {tab === "tendencias" && <Tendencias onSelectCoin={setSelectedCoin} />}
+          {tab === "alpha" && <Alpha />}
+          {tab === "carteras" && <Carteras />}
+        </div>
       </main>
 
       {selectedCoin && <CoinDetail coinId={selectedCoin} onClose={() => setSelectedCoin(null)} />}
 
-      <footer style={{ maxWidth: 1100, margin: "30px auto 0", padding: "0 16px", fontSize: 11, color: C.dim, ...styles.mono }}>
-        Fuentes: CoinGecko · GeckoTerminal · publicnode RPC · blockchain.info. Nada de esto es asesoría financiera.
+      <footer style={{ maxWidth: 1100, margin: "30px auto 0", padding: "16px 16px", fontSize: 11, color: C.dim, ...styles.mono, borderTop: `1px solid ${C.line}44`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+        <span>Fuentes: CoinGecko · GeckoTerminal · publicnode RPC · blockchain.info. No es asesoría financiera.</span>
+        <span style={{ color: C.sonar, letterSpacing: 1 }}>{clock}</span>
       </footer>
     </div>
   );
