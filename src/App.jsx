@@ -1477,21 +1477,64 @@ function Carteras() {
           <div className="section-label" style={{ margin: 0 }}>🐋 Carteras rastreadas ({data.wallets.length})</div>
           {agoText && <span style={{ ...styles.mono, fontSize: 11, color: C.dim }}>Última actualización: {agoText}</span>}
         </div>
-        {data.wallets.length > 0 && (
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <button
-              style={{ ...styles.btn, padding: "4px 10px", fontSize: 11,
-                background: autoRefresh ? C.sonar + "1A" : "transparent",
-                borderColor: autoRefresh ? C.sonar : C.line,
-                color: autoRefresh ? C.sonar : C.dim }}
-              onClick={() => setAutoRefresh(!autoRefresh)}>
-              {autoRefresh ? "✓ " : ""}Auto ↻ cada 5 min
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          {data.wallets.length > 0 && (
+            <>
+              <button
+                style={{ ...styles.btn, padding: "4px 10px", fontSize: 11,
+                  background: autoRefresh ? C.sonar + "1A" : "transparent",
+                  borderColor: autoRefresh ? C.sonar : C.line,
+                  color: autoRefresh ? C.sonar : C.dim }}
+                onClick={() => setAutoRefresh(!autoRefresh)}>
+                {autoRefresh ? "✓ " : ""}Auto ↻ cada 5 min
+              </button>
+              <button style={styles.btn} onClick={refreshAll} disabled={busy}>
+                {busy ? "…" : "↻ Actualizar balances"}
+              </button>
+            </>
+          )}
+          {data.wallets.length > 0 && (
+            <button style={{ ...styles.btn, padding: "4px 10px", fontSize: 11 }}
+              onClick={() => {
+                const blob = new Blob([JSON.stringify({ wallets: data.wallets, snapshots: data.snapshots }, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "radar-watchlist.json"; a.click();
+                URL.revokeObjectURL(url);
+              }}>
+              ⬇ Exportar
             </button>
-            <button style={styles.btn} onClick={refreshAll} disabled={busy}>
-              {busy ? "…" : "↻ Actualizar balances"}
-            </button>
-          </div>
-        )}
+          )}
+          <button style={{ ...styles.btn, padding: "4px 10px", fontSize: 11 }}
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file"; input.accept = ".json";
+              input.onchange = async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const text = await file.text();
+                  const imported = JSON.parse(text);
+                  if (!imported.wallets || !Array.isArray(imported.wallets) || !imported.snapshots) {
+                    setErr("Archivo inválido: debe tener {wallets, snapshots}.");
+                    return;
+                  }
+                  const existingAddrs = new Set(data.wallets.map((w) => w.address.toLowerCase() + ":" + w.chain));
+                  const newWallets = imported.wallets.filter((w) => !existingAddrs.has(w.address.toLowerCase() + ":" + w.chain));
+                  const mergedSnapshots = { ...data.snapshots };
+                  for (const w of newWallets) {
+                    if (imported.snapshots[w.id]) mergedSnapshots[w.id] = imported.snapshots[w.id];
+                  }
+                  const next = { wallets: [...data.wallets, ...newWallets], snapshots: mergedSnapshots };
+                  setData(next);
+                  await saveWalletData(next);
+                } catch { setErr("No se pudo leer el archivo JSON."); }
+              };
+              input.click();
+            }}>
+            ⬆ Importar
+          </button>
+        </div>
       </div>
       <div style={{ display: "grid", gap: 10 }}>
         {data.wallets.map((w) => {
